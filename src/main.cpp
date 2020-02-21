@@ -1,66 +1,33 @@
 #include <Arduino.h>
-#include <ArduinoWebsockets.h>
-#include <SPI.h>
-#include <LoRa.h>
 #include <WiFi.h>
+#include <FastLED.h>
 
-void setupLora();
+//* function definition
 void setupWiFi();
-void onnReceive();
-void setupSockets();
+void ledAnimation(uint8_t);
 
-const char* ssid = "Room no 13";
-const char* pwd = "roomno13";
+//* Fast led
+#define DATA_PIN 13
+#define NUM_LEDS 1
+CRGB leds[NUM_LEDS];
 
-const char* websockets_server_host = "192.168.0.10";
-const uint16_t websockets_server_port = 8080;
+//* WiFi
+const char* ssid = "OnePlus";
+const char* pwd = "qwerty.1234";
 
-short ssPin = 5;
-short dio0  = 2;
-short RST   = 14;
-
-using namespace websockets;
-WebsocketsClient client;
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
-  Serial.println("LoRa Receiver Callback");
+  FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS);
+  FastLED.setBrightness(100);
   setupWiFi();
-  setupSockets();
-  setupLora();
 
 
 }
 
 void loop() {
-  // do nothing
 }
 
-void onReceive(int packetSize) {
-  Serial.print("Received packet '");
-  for (int i = 0; i < packetSize; i++) {
-    Serial.print((char)LoRa.read());
-  }
-  Serial.print("' with RSSI ");
-  Serial.println(LoRa.packetRssi());
-}
-
-
-
-void setupLora(){
-  Serial.println(F("Trying to Setup LoRa Module with"));
-  Serial.printf("CS=GPIO%d  DIO0=GPIO%d  Reset= GPIO%d\n", ssPin, dio0, RST);
-  LoRa.setPins(ssPin, RST, dio0);
-  if (!LoRa.begin(433E6)) {
-      Serial.println("Starting LoRa failed!");
-      while (1);
-    }
-  // LoRa.setSyncWord(0xf3);
-  Serial.println(F("Lora started"));
-  LoRa.onReceive(onReceive);
-  LoRa.receive();
-}
 void setupWiFi(){
   unsigned long this_start = millis();
   WiFi.mode(WIFI_STA);
@@ -68,30 +35,28 @@ void setupWiFi(){
   WiFi.begin(ssid, pwd);
   while(WiFi.status() != WL_CONNECTED && millis()-this_start < 20000){
     Serial.print(".");
-    delay(500);
+    ledAnimation(1);
   }
   if (WiFi.status() == WL_CONNECTED) {
+  leds[0] = CRGB::Green;
+  FastLED.show();
     Serial.printf("\nConnected to %s\n", ssid);
     Serial.print(F("IP address  :"));Serial.print(WiFi.softAPIP());
     Serial.print(F("\tMAC address :"));Serial.println(WiFi.softAPmacAddress());
   }else{
+    leds[0] = CRGB::Red;
+    FastLED.show();
     WiFi.disconnect();
     Serial.println(F("WiFi disconnected"));
   }
 }
 
-void setupSockets(){
-  bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
-  if(connected) {
-      Serial.println("Connecetd!");
-      client.send("Hello Server");
-  } else {
-      Serial.println("Not Connected!");
+void ledAnimation(uint8_t count=0){
+  while (count--)
+  {
+      for(uint8_t i=0; i<255;i++){
+      leds[0].setHue(i);
+      FastLED.show();
+    }
   }
-
-  // run callback when messages are received
-  client.onMessage([&](WebsocketsMessage message){
-      Serial.print("Got Message: ");
-      Serial.println(message.data());
-  });
 }
