@@ -1,11 +1,10 @@
-#include <Arduino.h>
-#include "WiFiFunctions.h"
 
-void setupWiFi();
-
+#include "main.h"
 void setup(){
-Serial.begin(115200);
-setupWiFi();
+    // xTaskCreate(animate, "blinkTask", 1000,NULL,0,&Task1);
+    Serial.begin(115200);
+    setupWiFi();
+    name=10;
 // Serial.println()
 }
 
@@ -13,6 +12,13 @@ void loop(){
 }
 
 
+void animate(void* pvParameters){
+    while(true){
+        Serial.println(F("not connected"));
+        vTaskDelay(500);
+    }
+    
+}
 
 void setupWiFi(){
     WiFi.onEvent(WiFiStationConnected, SYSTEM_EVENT_STA_CONNECTED);

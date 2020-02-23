@@ -1,5 +1,4 @@
-#include "WiFiFunctions.h"
-
+#include "main.h"
 
 void WiFiReady(WiFiEvent_t event, WiFiEventInfo_t info){
     Serial.printf("(%lu) ", millis());
@@ -22,6 +21,7 @@ void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
         }
     }
     Serial.printf("\n\tChannel: %u\n\tAuthMode: %u\n", info.connected.channel, info.connected.authmode);
+    Serial.println(name);
 }
 void WiFiStationGotIp(WiFiEvent_t event, WiFiEventInfo_t info){
     Serial.printf("(%lu) ", millis());
